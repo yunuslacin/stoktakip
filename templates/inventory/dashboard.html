@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Kontrol Paneli{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Toplam Stok Değeri</h5>
+                <p class="display-6">₺ {{ total_stock_value|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Düşük Stok Uyarıları</h5>
+                {% if low_stock_products %}
+                <ul class="list-group list-group-flush">
+                    {% for product in low_stock_products %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ product.name }} ({{ product.sku }})</span>
+                        <span class="badge bg-danger">{{ product.total_stock }} {{ product.unit }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">Şu anda kritik stok bulunmuyor.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Bekleyen Talepler</h5>
+                <ul class="list-group list-group-flush">
+                    {% for req in pending_requests %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ req.product.name }} - {{ req.quantity }} {{ req.product.unit }}</span>
+                            <a href="{% url 'stock-request-detail' req.pk %}">Detay</a>
+                        </div>
+                        <small class="text-muted">{{ req.requested_by.get_full_name|default:req.requested_by.username }} - {{ req.created_at|date:"d.m.Y H:i" }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">Bekleyen talep yok.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Son Hareketler</h5>
+                <ul class="list-group list-group-flush">
+                    {% for movement in recent_movements %}
+                    <li class="list-group-item">
+                        <strong>{{ movement.get_movement_type_display }}</strong> - {{ movement.product.name }}: {{ movement.quantity }}
+                        <div class="text-muted small">{{ movement.created_at|date:"d.m.Y H:i" }} | {{ movement.warehouse }}</div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">Hareket kaydı bulunmuyor.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

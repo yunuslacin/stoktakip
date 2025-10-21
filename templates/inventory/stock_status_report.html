@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Stok Durum Raporu{% endblock %}
+{% block content %}
+<h2>Stok Durum Raporu</h2>
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>Ürün</th>
+            <th>SKU</th>
+            <th>Stok</th>
+            <th>Minimum Seviye</th>
+            <th>Durum</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr class="{% if product.is_below_reorder %}table-danger{% endif %}">
+            <td>{{ product.name }}</td>
+            <td>{{ product.sku }}</td>
+            <td>{{ product.total_stock }} {{ product.unit }}</td>
+            <td>{{ product.reorder_level }}</td>
+            <td>{% if product.is_below_reorder %}Uyarı{% else %}Normal{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center text-muted">Ürün bulunamadı.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
