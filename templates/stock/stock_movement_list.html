@@ -1,0 +1,57 @@
+{% extends "stock/base.html" %}
+{% block title %}Stok Hareketleri | Stok Takip{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Stok Hareketleri</h2>
+  <div class="btn-group">
+    <a href="{% url 'stock-issue' %}" class="btn btn-outline-danger">Stok Çıkışı</a>
+    <a href="{% url 'stock-entry-create' %}" class="btn btn-outline-success">Stok Girişi</a>
+    <a href="{% url 'stock-adjustment' %}" class="btn btn-outline-secondary">Manuel Düzeltme</a>
+  </div>
+</div>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form class="row g-2 mb-3">
+      <div class="col-auto">
+        <select name="type" class="form-select" onchange="this.form.submit()">
+          <option value="">Tüm hareketler</option>
+          <option value="in" {% if request.GET.type == 'in' %}selected{% endif %}>Stok Girişleri</option>
+          <option value="out" {% if request.GET.type == 'out' %}selected{% endif %}>Stok Çıkışları</option>
+          <option value="adjustment" {% if request.GET.type == 'adjustment' %}selected{% endif %}>Düzeltmeler</option>
+        </select>
+      </div>
+    </form>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Tarih</th>
+            <th>Ürün</th>
+            <th>Tip</th>
+            <th>Miktar</th>
+            <th>Depo</th>
+            <th>Proje</th>
+            <th>Not</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for movement in object_list %}
+          <tr>
+            <td>{{ movement.created_at|date:"d.m.Y H:i" }}</td>
+            <td>{{ movement.product.name }}</td>
+            <td>{{ movement.get_movement_type_display }}</td>
+            <td>{{ movement.quantity }}</td>
+            <td>{{ movement.warehouse.name }}</td>
+            <td>{% if movement.project %}{{ movement.project.name }}{% else %}-{% endif %}</td>
+            <td>{{ movement.note|default:"-" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted">Hareket kaydı bulunmuyor.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% include "stock/pagination.html" %}
+{% endblock %}

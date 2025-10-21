@@ -1,0 +1,73 @@
+{% extends "stock/base.html" %}
+{% block title %}Kullanıcı Yönetimi{% endblock %}
+{% block content %}
+<h2 class="h4 mb-3">Kullanıcı Yönetimi</h2>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">Kullanıcılar</h5>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>Ad</th>
+              <th>Email</th>
+              <th>Yetki</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td>{{ user.get_full_name|default:user.username }}</td>
+              <td>{{ user.email|default:"-" }}</td>
+              <td>
+                {% if user.is_superuser %}
+                Yönetici
+                {% elif user.is_staff %}
+                Yetkili
+                {% else %}
+                Kullanıcı
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted">Kullanıcı bulunmuyor.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">Yönetici Atamaları</h5>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>Kullanıcı</th>
+              <th>Yönetici</th>
+              <th>Birim</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for profile in profiles %}
+            <tr>
+              <td>{{ profile.user.get_full_name|default:profile.user.username }}</td>
+              <td>{% if profile.manager %}{{ profile.manager.get_full_name|default:profile.manager.username }}{% else %}-{% endif %}</td>
+              <td>{{ profile.department|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted">Profil bilgisi bulunmuyor.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

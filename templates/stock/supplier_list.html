@@ -1,0 +1,37 @@
+{% extends "stock/base.html" %}
+{% block title %}Tedarikçiler{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Tedarikçiler</h2>
+  {% if request.user.is_staff %}<a href="{% url 'supplier-create' %}" class="btn btn-primary">Yeni Tedarikçi</a>{% endif %}
+</div>
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Ad</th>
+          <th>İletişim</th>
+          <th>E-posta</th>
+          <th>Telefon</th>
+          <th>Vergi No</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for supplier in object_list %}
+        <tr>
+          <td>{{ supplier.name }}</td>
+          <td>{{ supplier.contact_name|default:"-" }}</td>
+          <td>{{ supplier.email|default:"-" }}</td>
+          <td>{{ supplier.phone|default:"-" }}</td>
+          <td>{{ supplier.tax_number|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted">Tedarikçi bulunmuyor.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "stock/pagination.html" %}
+{% endblock %}

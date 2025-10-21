@@ -1,0 +1,87 @@
+{% extends "stock/base.html" %}
+{% load stock_tags %}
+{% block title %}Talep Detayı{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">{{ request_obj.product.name }} - {{ request_obj.quantity }} {{ request_obj.product.unit_of_measure }}</h5>
+      <small class="text-muted">Talep eden: {{ request_obj.requested_by.get_full_name|default:request_obj.requested_by.username }}</small>
+    </div>
+    <span class="badge bg-{{ request_obj.status|status_badge_class }}">{{ request_obj.get_status_display }}</span>
+  </div>
+  <div class="card-body">
+    <dl class="row">
+      <dt class="col-sm-3">Proje</dt>
+      <dd class="col-sm-9">{{ request_obj.project.name }}</dd>
+      <dt class="col-sm-3">Depo</dt>
+      <dd class="col-sm-9">{{ request_obj.warehouse.name }}</dd>
+      <dt class="col-sm-3">Talep Açıklaması</dt>
+      <dd class="col-sm-9">{{ request_obj.description|default:"-" }}</dd>
+      <dt class="col-sm-3">İhtiyaç Tarihi</dt>
+      <dd class="col-sm-9">{{ request_obj.need_by_date|date:"d.m.Y"|default:"-" }}</dd>
+      <dt class="col-sm-3">Onay Notu</dt>
+      <dd class="col-sm-9">{{ request_obj.decision_reason|default:"-" }}</dd>
+      <dt class="col-sm-3">Durum Tarihçesi</dt>
+      <dd class="col-sm-9">
+        <ul class="list-unstyled mb-0">
+          {% for approval in request_obj.approvals.all %}
+          <li>
+            {{ approval.decided_at|date:"d.m.Y H:i" }} - {{ approval.get_status_display }}
+            ({{ approval.approver.get_full_name|default:approval.approver.username }})
+          </li>
+          {% empty %}
+          <li>Henüz onay kaydı bulunmuyor.</li>
+          {% endfor %}
+        </ul>
+      </dd>
+    </dl>
+    {% if can_approve and approval_form %}
+    <hr />
+    <h5>Onay</h5>
+    <form method="post">
+      {% csrf_token %}
+      {{ approval_form.non_field_errors }}
+      <div class="mb-3">
+        {{ approval_form.status.label_tag }}
+        {{ approval_form.status }}
+      </div>
+      <div class="mb-3">
+        {{ approval_form.decision_reason.label_tag }}
+        {{ approval_form.decision_reason.as_widget(attrs={'class': 'form-control'}) }}
+      </div>
+      <button type="submit" class="btn btn-success">Güncelle</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% if movements %}
+<div class="card shadow-sm mt-4">
+  <div class="card-header">
+    <h5 class="mb-0">Hareket Kayıtları</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Tip</th>
+          <th>Miktar</th>
+          <th>Depo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for movement in movements %}
+        <tr>
+          <td>{{ movement.created_at|date:"d.m.Y H:i" }}</td>
+          <td>{{ movement.get_movement_type_display }}</td>
+          <td>{{ movement.quantity }}</td>
+          <td>{{ movement.warehouse.name }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
