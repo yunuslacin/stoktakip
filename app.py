@@ -355,9 +355,21 @@ def list_products():
 def create_product():
     name = request.form.get("name", "").strip()
     sku = request.form.get("sku", "").strip()
-    reorder_level = int(request.form.get("reorder_level", 0) or 0)
+    try:
+        reorder_level = int(request.form.get("reorder_level", 0) or 0)
+    except (TypeError, ValueError):
+        reorder_level = 0
     if not name or not sku:
         flash("Ürün adı ve stok kodu zorunludur", "danger")
+        return redirect(url_for("list_products"))
+    duplicate = Product.query.filter(
+        (Product.name == name) | (Product.sku == sku)
+    ).first()
+    if duplicate:
+        if duplicate.name == name:
+            flash("Bu isimde bir ürün zaten mevcut", "warning")
+        else:
+            flash("Bu SKU başka bir ürün tarafından kullanılıyor", "warning")
         return redirect(url_for("list_products"))
     product = Product(name=name, sku=sku, reorder_level=reorder_level)
     db.session.add(product)
