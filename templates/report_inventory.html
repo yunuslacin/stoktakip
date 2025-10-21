@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Stok Durumu</h1>
+<div class="table-responsive mt-3">
+  <table class="table table-bordered align-middle">
+    <thead>
+      <tr>
+        <th>Ürün</th>
+        <th>Stok</th>
+        <th>Alt Limit</th>
+        <th>Durum</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      {% set qty = product.current_quantity() %}
+      <tr class="{% if qty <= product.low_stock_threshold %}table-warning{% endif %}">
+        <td>{{ product.name }}</td>
+        <td>{{ qty }}</td>
+        <td>{{ product.low_stock_threshold }}</td>
+        <td>
+          {% if qty <= product.low_stock_threshold %}
+          <span class="badge bg-danger">Düşük</span>
+          {% else %}
+          <span class="badge bg-success">Normal</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

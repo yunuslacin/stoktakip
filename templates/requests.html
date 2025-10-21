@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Stok Talepleri</h1>
+</div>
+<div class="card shadow-sm mb-4">
+  <div class="card-header">Yeni Talep</div>
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Ürün</label>
+        <select name="product_id" class="form-select" required>
+          <option value="" disabled selected>Seçiniz</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Proje</label>
+        <select name="project_id" class="form-select">
+          <option value="">-</option>
+          {% for project in projects %}
+          <option value="{{ project.id }}">{{ project.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Miktar</label>
+        <input type="number" name="quantity" class="form-control" min="1" required>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Not</label>
+        <textarea name="note" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Talep Gönder</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header">Talep Listesi</div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ürün</th>
+            <th>Proje</th>
+            <th>Miktar</th>
+            <th>Durum</th>
+            <th>Talep Eden</th>
+            <th>Onaylayan</th>
+            <th>Oluşturulma</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr>
+            <td>{{ req.id }}</td>
+            <td>{{ req.product.name }}</td>
+            <td>{{ req.project.name if req.project else '-' }}</td>
+            <td>{{ req.quantity }}</td>
+            <td>
+              <span class="badge bg-{{ {'pending':'warning','approved':'success','rejected':'secondary'}[req.status] }}">{{ req.status }}</span>
+            </td>
+            <td>{{ req.requester.username }}</td>
+            <td>{{ req.approver.username if req.approver else '-' }}</td>
+            <td>{{ format_datetime(req.created_at) }}</td>
+            <td>
+              {% if req.status == 'pending' and (g.user.is_admin or req.requester.manager_id == g.user.id) %}
+              <form method="post" action="{{ url_for('approve_request', request_id=req.id) }}" class="d-inline">
+                <button class="btn btn-sm btn-success">Onayla</button>
+              </form>
+              <form method="post" action="{{ url_for('reject_request', request_id=req.id) }}" class="d-inline ms-1">
+                <button class="btn btn-sm btn-outline-danger">Reddet</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Referans Tanımları</h1>
+<div class="row g-4 mt-2">
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Tedarikçi Ekle</div>
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="entity" value="supplier">
+          <div class="mb-3">
+            <label class="form-label">Ad</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">İletişim</label>
+            <textarea name="contact_info" class="form-control" rows="2"></textarea>
+          </div>
+          <button class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Depo Ekle</div>
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="entity" value="warehouse">
+          <div class="mb-3">
+            <label class="form-label">Ad</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <button class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Proje Ekle</div>
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="entity" value="project">
+          <div class="mb-3">
+            <label class="form-label">Ad</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <textarea name="description" class="form-control" rows="2"></textarea>
+          </div>
+          <button class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-4">
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Tedarikçiler</div>
+      <ul class="list-group list-group-flush">
+        {% for supplier in suppliers %}
+        <li class="list-group-item">
+          <strong>{{ supplier.name }}</strong>
+          <div class="small text-muted">{{ supplier.contact_info or '-' }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Depolar</div>
+      <ul class="list-group list-group-flush">
+        {% for warehouse in warehouses %}
+        <li class="list-group-item">{{ warehouse.name }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Projeler</div>
+      <ul class="list-group list-group-flush">
+        {% for project in projects %}
+        <li class="list-group-item">
+          <strong>{{ project.name }}</strong>
+          <div class="small text-muted">{{ project.description or '-' }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

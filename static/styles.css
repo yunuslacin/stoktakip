@@ -1,0 +1,12 @@
+body {
+  background-color: #f5f7fa;
+}
+.card {
+  border: none;
+}
+.table thead th {
+  white-space: nowrap;
+}
+.navbar-brand {
+  font-weight: 600;
+}

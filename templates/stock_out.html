@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Stok Çıkışı</h1>
+<form method="post" class="row g-3 mt-2">
+  <div class="col-md-4">
+    <label class="form-label">Ürün</label>
+    <select name="product_id" class="form-select" required>
+      <option value="" disabled selected>Seçiniz</option>
+      {% for product in products %}
+      <option value="{{ product.id }}">{{ product.name }} ({{ product.current_quantity() }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Proje</label>
+    <select name="project_id" class="form-select">
+      <option value="">-</option>
+      {% for project in projects %}
+      <option value="{{ project.id }}">{{ project.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Miktar</label>
+    <input type="number" name="quantity" class="form-control" min="1" required>
+  </div>
+  <div class="col-12">
+    <label class="form-label">Not</label>
+    <textarea name="note" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-danger">Kaydet</button>
+  </div>
+</form>
+{% endblock %}

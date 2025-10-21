@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ 'Ürün Düzenle' if product else 'Yeni Ürün' }}</h1>
+<form method="post" class="mt-3">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Ürün Adı</label>
+      <input type="text" name="name" class="form-control" value="{{ product.name if product else '' }}" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Stok Kodu</label>
+      <input type="text" name="sku" class="form-control" value="{{ product.sku if product else '' }}" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Alt Stok Limiti</label>
+      <input type="number" name="low_stock_threshold" class="form-control" value="{{ product.low_stock_threshold if product else 0 }}" min="0">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Açıklama</label>
+      <textarea name="description" class="form-control" rows="3">{{ product.description if product else '' }}</textarea>
+    </div>
+  </div>
+  <div class="mt-3">
+    <button class="btn btn-success" type="submit">Kaydet</button>
+    <a href="{{ url_for('list_products') }}" class="btn btn-secondary">İptal</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Fiyat Geçmişi</h1>
+<div class="table-responsive mt-3">
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>Ürün</th>
+        <th>Birim Maliyet</th>
+        <th>Tarih</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in price_data %}
+      <tr>
+        <td>{{ row.product_name }}</td>
+        <td>{{ '%.2f'|format(row.unit_cost) }}</td>
+        <td>{{ format_datetime(row.received_at) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
