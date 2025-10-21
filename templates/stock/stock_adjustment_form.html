@@ -1,0 +1,27 @@
+{% extends "stock/base.html" %}
+{% block title %}Stok Düzeltmesi{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">Manuel Stok Düzeltmesi</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">Fire, kayıp veya beklenmeyen artış durumlarında stok seviyelerini güncelleyin.</p>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field.as_widget(attrs={'class': 'form-control'}) }}
+            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-warning">Düzeltmeyi Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

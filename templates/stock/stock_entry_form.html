@@ -1,0 +1,28 @@
+{% extends "stock/base.html" %}
+{% block title %}Stok Girişi | Stok Takip{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Yeni Stok Girişi</h5>
+        <a href="{% url 'stock-entry-list' %}" class="btn btn-sm btn-outline-secondary">Giriş Listesi</a>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field.as_widget(attrs={'class': 'form-control'}) }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

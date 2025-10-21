@@ -1,0 +1,38 @@
+{% extends "stock/base.html" %}
+{% block title %}Fiyat Geçmişi{% endblock %}
+{% block content %}
+<h2 class="h4 mb-3">Fiyat Geçmişi</h2>
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Ürün</th>
+          <th>Tedarikçi</th>
+          <th>Depo</th>
+          <th>Fatura</th>
+          <th>Miktar</th>
+          <th>Birim Fiyat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in object_list %}
+        <tr>
+          <td>{{ entry.received_at|date:"d.m.Y" }}</td>
+          <td>{{ entry.product.name }}</td>
+          <td>{% if entry.supplier %}{{ entry.supplier.name }}{% else %}-{% endif %}</td>
+          <td>{{ entry.warehouse.name }}</td>
+          <td>{{ entry.invoice_number|default:"-" }}</td>
+          <td>{{ entry.quantity }}</td>
+          <td>{{ entry.unit_cost }} ₺</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted">Fiyat geçmişi bulunmuyor.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "stock/pagination.html" %}
+{% endblock %}

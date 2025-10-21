@@ -1,0 +1,33 @@
+{% extends "stock/base.html" %}
+{% block title %}Depolar{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Depolar</h2>
+  {% if request.user.is_staff %}<a href="{% url 'warehouse-create' %}" class="btn btn-primary">Yeni Depo</a>{% endif %}
+</div>
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Ad</th>
+          <th>Lokasyon</th>
+          <th>Açıklama</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for warehouse in object_list %}
+        <tr>
+          <td>{{ warehouse.name }}</td>
+          <td>{{ warehouse.location|default:"-" }}</td>
+          <td>{{ warehouse.description|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-center text-muted">Depo bulunmuyor.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "stock/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "stock/base.html" %}
+{% block title %}Stok Durumu Raporu{% endblock %}
+{% block content %}
+<h2 class="h4 mb-3">Stok Durumu Raporu</h2>
+<div class="card shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Ürün</th>
+          <th>Stok</th>
+          <th>Kritik Seviye</th>
+          <th>Toplam Değer</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in product_stock %}
+        <tr class="{% if product.reorder_level and product.on_hand <= product.reorder_level %}table-warning{% endif %}">
+          <td>{{ product.name }}</td>
+          <td>{{ product.on_hand }}</td>
+          <td>{{ product.reorder_level }}</td>
+          <td>₺ {{ product.total_value|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted">Ürün bulunmuyor.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="card shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0">Son 50 Hareket</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Ürün</th>
+          <th>Tip</th>
+          <th>Miktar</th>
+          <th>Depo</th>
+          <th>Proje</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for movement in movements %}
+        <tr>
+          <td>{{ movement.created_at|date:"d.m.Y H:i" }}</td>
+          <td>{{ movement.product.name }}</td>
+          <td>{{ movement.get_movement_type_display }}</td>
+          <td>{{ movement.quantity }}</td>
+          <td>{{ movement.warehouse.name }}</td>
+          <td>{% if movement.project %}{{ movement.project.name }}{% else %}-{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted">Hareket kaydı bulunmuyor.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

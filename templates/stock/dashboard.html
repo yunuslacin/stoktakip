@@ -1,0 +1,161 @@
+{% extends "stock/base.html" %}
+{% load stock_tags %}
+{% block title %}Kontrol Paneli | Stok Takip{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Toplam Stok Değeri</h6>
+        <p class="display-6">₺ {{ inventory_value|floatformat:2 }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Bekleyen Talepler</h6>
+        <p class="display-6">{{ pending_requests|length }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Kritik Stok</h6>
+        <p class="display-6">{{ low_stock_products|length }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Son Giriş-Çıkışlar</h6>
+        <p class="display-6">{{ recent_movements|length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Düşük Stok Uyarıları</h5>
+        <a href="{% url 'product-list' %}" class="btn btn-sm btn-outline-primary">Tümü</a>
+      </div>
+      <div class="card-body p-0">
+        {% if low_stock_products %}
+        <div class="table-responsive">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Ürün</th>
+                <th>Stok</th>
+                <th>Kritik Seviye</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for product in low_stock_products %}
+              <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.on_hand }}</td>
+                <td>{{ product.reorder_level }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="p-3 mb-0 text-muted">Kritik stok bulunmuyor.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header">
+        <h5 class="mb-0">Bekleyen Talepler</h5>
+      </div>
+      <div class="card-body p-0">
+        {% if pending_requests %}
+        <div class="list-group list-group-flush">
+          {% for request in pending_requests %}
+          <a class="list-group-item list-group-item-action" href="{% url 'stock-request-detail' request.pk %}">
+            <div class="d-flex justify-content-between">
+              <strong>{{ request.product.name }} ({{ request.quantity }} {{ request.product.unit_of_measure }})</strong>
+              <span class="badge bg-warning text-dark">Beklemede</span>
+            </div>
+            <small>{{ request.project.name }} · Talep eden: {{ request.requested_by.get_full_name|default:request.requested_by.username }}</small>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="p-3 mb-0 text-muted">Bekleyen talep bulunmuyor.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header">
+        <h5 class="mb-0">Talep Durumlarım</h5>
+      </div>
+      <div class="card-body p-0">
+        {% if awaiting_user_requests %}
+        <div class="list-group list-group-flush">
+          {% for request in awaiting_user_requests %}
+          <a class="list-group-item list-group-item-action" href="{% url 'stock-request-detail' request.pk %}">
+            <div class="d-flex justify-content-between">
+              <strong>{{ request.product.name }} ({{ request.quantity }})</strong>
+              <span class="badge bg-{{ request.status|status_badge_class }}">{{ request.get_status_display }}</span>
+            </div>
+            <small>{{ request.project.name }} · {{ request.created_at|date:"d.m.Y" }}</small>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="p-3 mb-0 text-muted">Takip edeceğiniz talep bulunmuyor.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card shadow-sm mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Son Hareketler</h5>
+    <a href="{% url 'stock-movement-list' %}" class="btn btn-sm btn-outline-secondary">Hareket Geçmişi</a>
+  </div>
+  <div class="card-body p-0">
+    {% if recent_movements %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Tarih</th>
+            <th>Ürün</th>
+            <th>Tip</th>
+            <th>Miktar</th>
+            <th>Depo</th>
+            <th>Proje</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for movement in recent_movements %}
+          <tr>
+            <td>{{ movement.created_at|date:"d.m.Y H:i" }}</td>
+            <td>{{ movement.product.name }}</td>
+            <td>{{ movement.get_movement_type_display }}</td>
+            <td>{{ movement.quantity }}</td>
+            <td>{{ movement.warehouse.name }}</td>
+            <td>{% if movement.project %}{{ movement.project.name }}{% else %}-{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="p-3 mb-0 text-muted">Henüz hareket kaydı bulunmuyor.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

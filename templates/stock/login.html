@@ -1,0 +1,24 @@
+{% extends "stock/base.html" %}
+{% block title %}Giriş | Stok Takip{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-4">
+    <h2 class="mb-4 text-center">Sisteme Giriş</h2>
+    <form method="post" class="card card-body shadow-sm">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="mb-3">
+        <label class="form-label" for="id_username">Kullanıcı adı</label>
+        {{ form.username.as_widget(attrs={'class': 'form-control'}) }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="id_password">Şifre</label>
+        {{ form.password.as_widget(attrs={'class': 'form-control'}) }}
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
