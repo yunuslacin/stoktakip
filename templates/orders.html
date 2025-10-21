@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Sipariş Yönetimi</h1>
+<div class="row g-4 mt-2">
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Yeni Sipariş</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Ürün</label>
+            <select name="product_id" class="form-select" required>
+              <option value="" disabled selected>Seçiniz</option>
+              {% for product in products %}
+              <option value="{{ product.id }}">{{ product.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tedarikçi</label>
+            <select name="supplier_id" class="form-select">
+              <option value="">-</option>
+              {% for supplier in suppliers %}
+              <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Miktar</label>
+            <input type="number" name="quantity" class="form-control" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Durum</label>
+            <select name="status" class="form-select">
+              <option value="pending">Beklemede</option>
+              <option value="approved">Onaylandı</option>
+              <option value="ordered">Sipariş Verildi</option>
+              <option value="completed">Tamamlandı</option>
+              <option value="cancelled">İptal</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header">Siparişler</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ürün</th>
+                <th>Tedarikçi</th>
+                <th>Miktar</th>
+                <th>Durum</th>
+                <th>Oluşturulma</th>
+                <th>Güncelle</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.product.name }}</td>
+                <td>{{ order.supplier.name if order.supplier else '-' }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>{{ order.status }}</td>
+                <td>{{ format_datetime(order.created_at) }}</td>
+                <td>
+                  <form method="post" action="{{ url_for('update_order_status', order_id=order.id) }}" class="d-flex gap-2">
+                    <select name="status" class="form-select form-select-sm">
+                      {% for option in ['pending','approved','ordered','completed','cancelled'] %}
+                      <option value="{{ option }}" {% if order.status == option %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                    <button class="btn btn-sm btn-outline-secondary">Güncelle</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

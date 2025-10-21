@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stok Takip</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">Stok Takip</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            {% if g.user %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('list_products') }}">Ürünler</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Stok</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('stock_in') }}">Stok Girişi</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('stock_out') }}">Stok Çıkışı</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('stock_adjust') }}">Düzeltme</a></li>
+              </ul>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_requests') }}">Talepler</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Raporlar</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('inventory_report') }}">Stok Durumu</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('movement_report') }}">Hareketler</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('price_report') }}">Fiyat Geçmişi</a></li>
+              </ul>
+            </li>
+            {% if g.user.is_admin %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_orders') }}">Siparişler</a></li>
+            {% endif %}
+            {% if g.user.is_admin %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_users') }}">Kullanıcı Yönetimi</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_references') }}">Referans Tanımları</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('activity_log') }}">Aktivite Logları</a></li>
+            {% endif %}
+            {% endif %}
+          </ul>
+          <ul class="navbar-nav">
+            {% if g.user %}
+            <li class="nav-item"><span class="navbar-text text-white me-3">{{ g.user.username }}</span></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Çıkış</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

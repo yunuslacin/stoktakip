@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Stok Hareketleri</h1>
+<div class="table-responsive mt-3">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Ürün</th>
+        <th>Tip</th>
+        <th>Miktar</th>
+        <th>Birim Maliyet</th>
+        <th>Depo</th>
+        <th>Tedarikçi</th>
+        <th>Proje</th>
+        <th>Kullanıcı</th>
+        <th>Not</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for movement in movements %}
+      <tr>
+        <td>{{ format_datetime(movement.created_at) }}</td>
+        <td>{{ movement.product.name }}</td>
+        <td>{{ movement.movement_type }}</td>
+        <td>{{ movement.quantity }}</td>
+        <td>{{ movement.unit_cost or '-' }}</td>
+        <td>{{ movement.warehouse.name if movement.warehouse else '-' }}</td>
+        <td>{{ movement.supplier.name if movement.supplier else '-' }}</td>
+        <td>{{ movement.project.name if movement.project else '-' }}</td>
+        <td>{{ movement.user.username if movement.user else '-' }}</td>
+        <td>{{ movement.note or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Aktivite Logları</h1>
+<div class="table-responsive mt-3">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Kullanıcı</th>
+        <th>Aksiyon</th>
+        <th>Detay</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ format_datetime(log.timestamp) }}</td>
+        <td>{{ log.user.username if log.user else '-' }}</td>
+        <td>{{ log.action }}</td>
+        <td>{{ log.details or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

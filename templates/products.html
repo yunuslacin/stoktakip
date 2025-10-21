@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Ürünler</h1>
+  {% if g.user.is_admin %}
+  <a href="{{ url_for('create_product') }}" class="btn btn-primary">Yeni Ürün</a>
+  {% endif %}
+</div>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Ad</th>
+        <th>Stok Kodu</th>
+        <th>Stok</th>
+        <th>Alt Limit</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.sku }}</td>
+        <td>{{ product.current_quantity() }}</td>
+        <td>{{ product.low_stock_threshold }}</td>
+        <td>
+          {% if g.user.is_admin %}
+          <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

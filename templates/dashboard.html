@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Kontrol Paneli</h1>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-bg-primary shadow-sm">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-uppercase">Toplam Ürün</h6>
+        <h2 class="card-title">{{ products|length }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-bg-warning shadow-sm">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-uppercase">Bekleyen Talep</h6>
+        <h2 class="card-title">{{ pending_requests }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">Düşük Stok Uyarıları</div>
+      <div class="card-body">
+        {% if low_stock_products %}
+        <ul class="list-group list-group-flush">
+          {% for product in low_stock_products %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ product.name }}</span>
+            <span class="badge bg-danger">{{ product.current_quantity() }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted mb-0">Uyarı bulunmuyor.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">Son Hareketler</div>
+      <div class="card-body">
+        {% if recent_movements %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>Ürün</th>
+                <th>Tip</th>
+                <th>Miktar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for movement in recent_movements %}
+              <tr>
+                <td>{{ format_datetime(movement.created_at) }}</td>
+                <td>{{ movement.product.name }}</td>
+                <td>{{ movement.movement_type }}</td>
+                <td>{{ movement.quantity }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Kayıt bulunmuyor.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
