@@ -16,6 +16,11 @@ Bu proje, FIFO yöntemine göre çalışan ve çok kullanıcılı erişim sunan 
 - Düşük stok seviyeleri için uyarılar
 
 ## Kurulum
+0. Proje klasörüne geçin:
+   ```bash
+   cd stoktakip
+   ```
+   > Windows'ta Komut İstemi kullanıyorsanız, `requirements.txt` dosyasının bulunduğu klasöre geçmeden sonraki adımlara devam ederseniz "No such file or directory" hatası alırsınız.
 1. Gerekli paketleri yükleyin:
    ```bash
    pip install -r requirements.txt
