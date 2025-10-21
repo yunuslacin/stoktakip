@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Stok Girişi</h1>
+<form method="post" class="row g-3">
+  <div class="col-md-4">
+    <label class="form-label">Ürün</label>
+    <select name="product_id" class="form-select" required>
+      <option value="">Seçiniz</option>
+      {% for product in products %}
+      <option value="{{ product.id }}">{{ product.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Adet</label>
+    <input type="number" step="0.01" min="0.01" name="quantity" class="form-control" required>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Birim Maliyet</label>
+    <input type="number" step="0.01" min="0" name="unit_cost" class="form-control" required>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Tedarikçi</label>
+    <input type="text" name="supplier" class="form-control">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Fatura No</label>
+    <input type="text" name="invoice_number" class="form-control">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Depo</label>
+    <select name="warehouse_id" class="form-select">
+      <option value="">Seçiniz</option>
+      {% for warehouse in warehouses %}
+      <option value="{{ warehouse.id }}">{{ warehouse.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+  </div>
+</form>
+{% endblock %}
