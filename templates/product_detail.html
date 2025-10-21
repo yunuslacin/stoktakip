@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ product.name }}</h1>
+<p class="text-muted">SKU: {{ product.sku }}</p>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5>Mevcut Stok</h5>
+        <p class="display-6">{{ '%.2f'|format(available) }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5>Ortalama Maliyet</h5>
+        <p class="display-6">{{ '%.2f'|format(product.average_unit_cost()) }} ₺</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5>Son Maliyet</h5>
+        <p class="display-6">{{ '%.2f'|format(product.last_unit_cost()) }} ₺</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>Stok Girişleri</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Adet</th>
+        <th>Kalan</th>
+        <th>Birim Maliyet</th>
+        <th>Tedarikçi</th>
+        <th>Fatura</th>
+        <th>Depo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+      <tr>
+        <td>{{ entry.timestamp.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ entry.quantity }}</td>
+        <td>{{ entry.remaining_quantity }}</td>
+        <td>{{ '%.2f'|format(entry.unit_cost) }}</td>
+        <td>{{ entry.supplier or '-' }}</td>
+        <td>{{ entry.invoice_number or '-' }}</td>
+        <td>{{ entry.warehouse.name if entry.warehouse else '-' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Stok Çıkışları</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Adet</th>
+        <th>Proje</th>
+        <th>Toplam Maliyet</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for exit in exits %}
+      <tr>
+        <td>{{ exit.timestamp.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ exit.quantity }}</td>
+        <td>{{ exit.project.name if exit.project else '-' }}</td>
+        <td>{{ '%.2f'|format(exit.total_cost) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Manuel Düzeltmeler</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Değişim</th>
+        <th>Neden</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for adj in adjustments %}
+      <tr>
+        <td>{{ adj.timestamp.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ adj.quantity_change }}</td>
+        <td>{{ adj.reason }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Talep Geçmişi</h3>
+<div class="table-responsive">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Kullanıcı</th>
+        <th>Adet</th>
+        <th>Durum</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requests %}
+      <tr>
+        <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ req.requester.username }}</td>
+        <td>{{ req.quantity }}</td>
+        <td>{{ req.status }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
