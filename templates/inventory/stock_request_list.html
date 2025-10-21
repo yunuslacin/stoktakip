@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Stok Talepleri{% endblock %}
+{% block content %}
+<h2>Stok Talepleri</h2>
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Ürün</th>
+            <th>Proje</th>
+            <th>Depo</th>
+            <th>Miktar</th>
+            <th>Durum</th>
+            <th>Talep Eden</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for req in requests %}
+        <tr>
+            <td>{{ req.product.name }}</td>
+            <td>{{ req.project.name }}</td>
+            <td>{{ req.warehouse.name }}</td>
+            <td>{{ req.quantity }} {{ req.product.unit }}</td>
+            <td>{{ req.get_status_display }}</td>
+            <td>{{ req.requested_by.get_full_name|default:req.requested_by.username }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="{% url 'stock-request-detail' req.pk %}">Detay</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center text-muted">Talep bulunamadı.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Talep Detayı{% endblock %}
+{% block content %}
+<h2>Talep Detayı</h2>
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ stock_request.product.name }} - {{ stock_request.quantity }} {{ stock_request.product.unit }}</h5>
+        <p><strong>Proje:</strong> {{ stock_request.project.name }}</p>
+        <p><strong>Depo:</strong> {{ stock_request.warehouse.name }}</p>
+        <p><strong>Durum:</strong> {{ stock_request.get_status_display }}</p>
+        <p><strong>Talep Eden:</strong> {{ stock_request.requested_by.get_full_name|default:stock_request.requested_by.username }}</p>
+        <p><strong>Not:</strong> {{ stock_request.notes|default:'-' }}</p>
+        {% if stock_request.status == 'completed' and allocations %}
+        <h6>FIFO Dağılımı</h6>
+        <ul>
+            {% for movement in allocations %}
+            <li>
+                {% if movement.source_entry %}
+                {{ movement.source_entry.received_at|date:"d.m.Y" }} tarihli girişten
+                {% else %}
+                Belirsiz kaynaktan
+                {% endif %}
+                {{ movement.quantity|abs }} adet düşüldü.
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if can_manage and stock_request.status == 'pending' %}
+        <form method="post" class="mt-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="approve">
+            <button class="btn btn-success" type="submit">Onayla</button>
+        </form>
+        <form method="post" class="mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <div class="mb-2">
+                <textarea name="reason" class="form-control" rows="2" placeholder="Red nedeni"></textarea>
+            </div>
+            <button class="btn btn-danger" type="submit">Reddet</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

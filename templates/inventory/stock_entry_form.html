@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Stok Girişi{% endblock %}
+{% block content %}
+<h2>Stok Girişi</h2>
+<form method="post" class="mt-3">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-success" type="submit">Kaydet</button>
+</form>
+{% endblock %}

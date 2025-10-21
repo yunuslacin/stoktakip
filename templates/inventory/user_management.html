@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Kullanıcı Yönetimi{% endblock %}
+{% block content %}
+<h2>Kullanıcı Yönetimi</h2>
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Kullanıcı</th>
+            <th>E-posta</th>
+            <th>Yönetici</th>
+            <th>Güncelle</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user, form in user_forms %}
+        <tr>
+            <td>{{ user.get_full_name|default:user.username }}</td>
+            <td>{{ user.email|default:"-" }}</td>
+            <td>
+                {% if user.profile.manager %}
+                    {{ user.profile.manager.get_full_name|default:user.profile.manager.username }}
+                {% else %}
+                    Atanmamış
+                {% endif %}
+            </td>
+            <td>
+                <form method="post" class="d-flex">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    {{ form.manager }}
+                    <button class="btn btn-sm btn-primary" type="submit">Kaydet</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="text-center text-muted">Kullanıcı bulunamadı.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
