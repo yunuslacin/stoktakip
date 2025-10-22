@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h1>Stok Talepleri</h1>
+</div>
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Yeni Talep Oluştur</h5>
+    <form method="post" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Ürün</label>
+        <select name="product_id" class="form-select" required>
+          <option value="">Seçiniz</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Adet</label>
+        <input type="number" step="0.01" min="0.01" name="quantity" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Not</label>
+        <input type="text" name="notes" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Termin Tarihi</label>
+        <input type="date" name="due_date" class="form-control" min="{{ min_due_date }}">
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Talep Et</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <h3>Taleplerim</h3>
+    <div class="list-group">
+      {% for req in my_requests %}
+      <div class="list-group-item">
+        <div class="d-flex justify-content-between">
+          <div>
+            <strong>{{ req.product.name }}</strong> - {{ req.quantity }} adet
+            <div class="text-muted small">{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            {% if req.due_date %}
+            <div class="text-muted small">Termin: {{ req.due_date.strftime('%d.%m.%Y') }}</div>
+            {% endif %}
+          </div>
+          <span class="badge bg-secondary">{{ req.status }}</span>
+        </div>
+        {% if req.notes %}
+        <div class="small mt-2">Not: {{ req.notes }}</div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="list-group-item">Talebiniz yok</div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-md-6">
+    {% if g.user.is_manager %}
+    <h3>Onay Bekleyen Talepler</h3>
+    <div class="list-group">
+      {% for req in to_approve %}
+      <div class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ req.product.name }}</strong> - {{ req.quantity }} adet ({{ req.requester.username }})
+            <div class="text-muted small">{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            {% if req.due_date %}
+            <div class="text-muted small">Termin: {{ req.due_date.strftime('%d.%m.%Y') }}</div>
+            {% endif %}
+          </div>
+          <div class="btn-group">
+            <form method="post" action="{{ url_for('approve_request', request_id=req.id) }}">
+              <button class="btn btn-success btn-sm" type="submit">Onayla</button>
+            </form>
+            <form method="post" action="{{ url_for('reject_request', request_id=req.id) }}">
+              <button class="btn btn-outline-danger btn-sm" type="submit">Reddet</button>
+            </form>
+            <form method="post" action="{{ url_for('fulfill_request', request_id=req.id) }}">
+              <button class="btn btn-outline-primary btn-sm" type="submit">Karşıla</button>
+            </form>
+          </div>
+        </div>
+        {% if req.notes %}
+        <div class="small mt-2">Not: {{ req.notes }}</div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="list-group-item">Onay bekleyen talep yok</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

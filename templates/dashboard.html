@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Kontrol Paneli</h1>
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Toplam Ürün</h5>
+        <p class="display-6">{{ products|length }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Bekleyen Talepler</h5>
+        <p class="display-6">{{ pending_requests|length }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Aktif Siparişler</h5>
+        <p class="display-6">{{ pending_orders|length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if low_stock %}
+<div class="mt-4">
+  <h3>Düşük Stok Uyarıları</h3>
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered">
+      <thead>
+        <tr>
+          <th>Ürün</th>
+          <th>Stok</th>
+          <th>Minimum Seviye</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in low_stock %}
+        <tr class="table-warning">
+          <td><a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a></td>
+          <td>{{ '%.2f'|format(product.available_quantity()) }}</td>
+          <td>{{ product.reorder_level }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+  <div class="col-md-6">
+    <h3>Bekleyen Talepler</h3>
+    <ul class="list-group">
+      {% for req in pending_requests %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>{{ req.product.name }} - {{ req.quantity }} adet ({{ req.requester.username }})</span>
+        <span class="badge bg-secondary">{{ req.status }}</span>
+      </li>
+      {% else %}
+      <li class="list-group-item">Bekleyen talep yok</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-6">
+    <h3>Son Hareketler</h3>
+    <ul class="list-group">
+      {% for movement in recent_movements %}
+      <li class="list-group-item">
+        <strong>{{ movement.product.name }}</strong> - {{ movement.movement_type }} - {{ movement.quantity }}
+        <div class="text-muted small">{{ movement.timestamp.strftime('%d.%m.%Y %H:%M') }} | {{ movement.details }}</div>
+      </li>
+      {% else %}
+      <li class="list-group-item">Kayıt yok</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
