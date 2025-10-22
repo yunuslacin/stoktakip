@@ -23,6 +23,7 @@
             <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_exit') }}">Stok Çıkışı</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_adjust') }}">Düzeltme</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('purchase_orders') }}">Siparişler</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_projects') }}">Projeler</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}">Raporlar</a></li>
             {% endif %}
             {% if g.user.is_admin %}

@@ -8,12 +8,16 @@ Bu proje, FIFO yöntemine göre çalışan ve çok kullanıcılı erişim sunan 
 - FIFO (First In, First Out) yöntemiyle stok çıkışı maliyet hesaplama
 - Stok girişlerinde tedarikçi, fatura ve depo bilgisi takibi
 - Proje bazlı stok çıkışı
+- Proje yönetim ekranı ile proje ekleme ve güncelleme
 - Stok talepleri için hiyerarşik onay süreci ve talep durum takibi
+- Stok taleplerinde termin tarihi planlama
 - Sipariş (tedarik) yönetimi ve durum güncellemeleri
 - Manuel stok düzeltmeleri ve hareket günlüğü
 - Stok durumu, fiyat geçmişi ve hareket raporları
+- Stok hareketlerini Excel formatında dışa aktarma
 - Kullanıcı yönetimi ekranı ve kullanıcı aktivite logları
 - Düşük stok seviyeleri için uyarılar
+- Ürün kartlarında ürün kodu/detay güncelleme ve fotoğraf yükleme (yalnızca admin)
 
 ## Kurulum
 0. Proje klasörüne geçin:

@@ -1,7 +1,44 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{{ product.name }}</h1>
-<p class="text-muted">SKU: {{ product.sku }}</p>
+<div class="d-flex justify-content-between align-items-start flex-wrap">
+  <div>
+    <h1>{{ product.name }}</h1>
+    <p class="text-muted">Ürün Kodu: {{ product.sku }}</p>
+  </div>
+  {% if product.image_filename %}
+  <img src="{{ url_for('static', filename='uploads/' ~ product.image_filename) }}" alt="{{ product.name }}" class="img-thumbnail" style="max-height: 160px;">
+  {% endif %}
+</div>
+
+{% if g.user.is_admin %}
+<div class="card my-3">
+  <div class="card-body">
+    <h5 class="card-title">Ürünü Güncelle</h5>
+    <form method="post" action="{{ url_for('update_product', product_id=product.id) }}" enctype="multipart/form-data" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Ürün Adı</label>
+        <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Ürün Kodu</label>
+        <input type="text" name="sku" class="form-control" value="{{ product.sku }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Minimum Stok Seviyesi</label>
+        <input type="number" name="reorder_level" class="form-control" min="0" value="{{ product.reorder_level }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Ürün Fotoğrafı</label>
+        <input type="file" name="image" class="form-control" accept="image/*">
+        <div class="form-text">Sadece resim dosyaları yükleyebilirsiniz.</div>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Güncelle</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
 <div class="row g-3 mb-4">
   <div class="col-md-4">
     <div class="card">
@@ -70,6 +107,7 @@
         <th>Adet</th>
         <th>Proje</th>
         <th>Toplam Maliyet</th>
+        <th>Birim Maliyet</th>
       </tr>
     </thead>
     <tbody>
@@ -79,6 +117,7 @@
         <td>{{ exit.quantity }}</td>
         <td>{{ exit.project.name if exit.project else '-' }}</td>
         <td>{{ '%.2f'|format(exit.total_cost) }}</td>
+        <td>{{ '%.2f'|format(exit.total_cost / exit.quantity) if exit.quantity else '-' }}</td>
       </tr>
       {% else %}
       <tr><td colspan="4" class="text-center">Kayıt bulunamadı</td></tr>

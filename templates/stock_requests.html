@@ -24,6 +24,10 @@
         <label class="form-label">Not</label>
         <input type="text" name="notes" class="form-control">
       </div>
+      <div class="col-md-4">
+        <label class="form-label">Termin Tarihi</label>
+        <input type="date" name="due_date" class="form-control" min="{{ min_due_date }}">
+      </div>
       <div class="col-12">
         <button type="submit" class="btn btn-primary">Talep Et</button>
       </div>
@@ -41,6 +45,9 @@
           <div>
             <strong>{{ req.product.name }}</strong> - {{ req.quantity }} adet
             <div class="text-muted small">{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            {% if req.due_date %}
+            <div class="text-muted small">Termin: {{ req.due_date.strftime('%d.%m.%Y') }}</div>
+            {% endif %}
           </div>
           <span class="badge bg-secondary">{{ req.status }}</span>
         </div>
@@ -63,6 +70,9 @@
           <div>
             <strong>{{ req.product.name }}</strong> - {{ req.quantity }} adet ({{ req.requester.username }})
             <div class="text-muted small">{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            {% if req.due_date %}
+            <div class="text-muted small">Termin: {{ req.due_date.strftime('%d.%m.%Y') }}</div>
+            {% endif %}
           </div>
           <div class="btn-group">
             <form method="post" action="{{ url_for('approve_request', request_id=req.id) }}">

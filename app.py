@@ -1,18 +1,34 @@
 import datetime
+import io
+import os
 from functools import wraps
+from pathlib import Path
 
 import click
 from flask import (Flask, abort, flash, g, redirect, render_template, request,
-                   session, url_for)
+                   send_file, session, url_for)
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import joinedload
+from openpyxl import Workbook
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///inventory.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "change-me"
+app.config["UPLOAD_FOLDER"] = str(Path(__file__).resolve().parent / "static" / "uploads")
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
+
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 db = SQLAlchemy(app)
+
+
+def allowed_file(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
 class User(db.Model):
@@ -66,6 +82,7 @@ class Product(db.Model):
     sku = db.Column(db.String(120), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
     reorder_level = db.Column(db.Integer, default=0)
+    image_filename = db.Column(db.String(255), nullable=True)
 
     def available_quantity(self) -> float:
         entries = StockEntry.query.filter_by(product_id=self.id).all()
@@ -147,9 +164,12 @@ class StockMovementLog(db.Model):
     details = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    cost = db.Column(db.Float, nullable=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=True)
 
     product = db.relationship("Product")
     user = db.relationship("User")
+    project = db.relationship("Project")
 
 
 class StockRequest(db.Model):
@@ -165,6 +185,7 @@ class StockRequest(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     notes = db.Column(db.Text, nullable=True)
+    due_date = db.Column(db.Date, nullable=True)
 
     product = db.relationship("Product")
     requester = db.relationship("User", foreign_keys=[requester_id])
@@ -238,13 +259,23 @@ def manager_required(view_func):
     return wrapped
 
 
-def record_movement(product_id: int, movement_type: str, quantity: float, details: str = "") -> None:
+def record_movement(
+    product_id: int,
+    movement_type: str,
+    quantity: float,
+    details: str = "",
+    *,
+    cost: float | None = None,
+    project_id: int | None = None,
+) -> None:
     log = StockMovementLog(
         product_id=product_id,
         movement_type=movement_type,
         quantity=quantity,
         details=details,
         user_id=g.user.id if g.user else None,
+        cost=cost,
+        project_id=project_id,
     )
     db.session.add(log)
 
@@ -360,7 +391,7 @@ def create_product():
     except (TypeError, ValueError):
         reorder_level = 0
     if not name or not sku:
-        flash("Ürün adı ve stok kodu zorunludur", "danger")
+        flash("Ürün adı ve ürün kodu zorunludur", "danger")
         return redirect(url_for("list_products"))
     duplicate = Product.query.filter(
         (Product.name == name) | (Product.sku == sku)
@@ -369,7 +400,7 @@ def create_product():
         if duplicate.name == name:
             flash("Bu isimde bir ürün zaten mevcut", "warning")
         else:
-            flash("Bu SKU başka bir ürün tarafından kullanılıyor", "warning")
+            flash("Bu ürün kodu başka bir ürün tarafından kullanılıyor", "warning")
         return redirect(url_for("list_products"))
     product = Product(name=name, sku=sku, reorder_level=reorder_level)
     db.session.add(product)
@@ -439,7 +470,14 @@ def stock_entry():
             created_by=g.user.id if g.user else None,
         )
         db.session.add(entry)
-        record_movement(product_id, "giriş", quantity, f"Tedarikçi: {supplier or '-'}, Fatura: {invoice_number or '-'}")
+        total_cost = quantity * unit_cost
+        record_movement(
+            product_id,
+            "giriş",
+            quantity,
+            f"Tedarikçi: {supplier or '-'}, Fatura: {invoice_number or '-'}",
+            cost=total_cost,
+        )
         record_user_activity("stock_entry", f"Ürün {product_id} için {quantity} adet stok girişi")
         db.session.commit()
         flash("Stok girişi kaydedildi", "success")
@@ -472,7 +510,15 @@ def stock_exit():
             created_by=g.user.id if g.user else None,
         )
         db.session.add(exit_record)
-        record_movement(product_id, "çıkış", -quantity, f"Proje ID: {project_id or '-'} | {'; '.join(notes)}")
+        project_detail = Project.query.get(project_id) if project_id else None
+        record_movement(
+            product_id,
+            "çıkış",
+            -quantity,
+            f"Proje: {project_detail.name if project_detail else '-'} | {'; '.join(notes)}",
+            cost=total_cost,
+            project_id=project_id,
+        )
         record_user_activity("stock_exit", f"Ürün {product_id} için {quantity} adet stok çıkışı")
         db.session.commit()
         flash("Stok çıkışı kaydedildi", "success")
@@ -500,6 +546,13 @@ def stock_adjust():
                 db.session.rollback()
                 flash(str(exc), "danger")
                 return redirect(url_for("stock_adjust"))
+            record_movement(
+                product_id,
+                "düzeltme",
+                quantity_change,
+                detail,
+                cost=total_cost,
+            )
         else:
             entry = StockEntry(
                 product_id=product_id,
@@ -513,6 +566,13 @@ def stock_adjust():
             )
             db.session.add(entry)
             detail = f"{reason} nedeniyle {quantity_change} adet eklendi"
+            record_movement(
+                product_id,
+                "düzeltme",
+                quantity_change,
+                detail,
+                cost=0,
+            )
         adjustment = StockAdjustment(
             product_id=product_id,
             quantity_change=quantity_change,
@@ -520,7 +580,6 @@ def stock_adjust():
             created_by=g.user.id if g.user else None,
         )
         db.session.add(adjustment)
-        record_movement(product_id, "düzeltme", quantity_change, detail)
         record_user_activity("stock_adjust", detail)
         db.session.commit()
         flash("Stok düzeltmesi kaydedildi", "success")
@@ -532,10 +591,22 @@ def stock_adjust():
 @login_required
 def stock_requests():
     products = Product.query.order_by(Product.name).all()
+    min_due_date = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
     if request.method == "POST":
         product_id = int(request.form.get("product_id"))
         quantity = float(request.form.get("quantity"))
         notes = request.form.get("notes", "")
+        due_date_raw = request.form.get("due_date", "").strip()
+        due_date = None
+        if due_date_raw:
+            try:
+                due_date = datetime.datetime.strptime(due_date_raw, "%Y-%m-%d").date()
+            except ValueError:
+                flash("Geçerli bir termin tarihi seçiniz", "danger")
+                return redirect(url_for("stock_requests"))
+            if due_date <= datetime.date.today():
+                flash("Termin tarihi bugünden sonraki bir tarih olmalıdır", "danger")
+                return redirect(url_for("stock_requests"))
         manager_id = g.user.manager_id
         request_record = StockRequest(
             product_id=product_id,
@@ -543,6 +614,7 @@ def stock_requests():
             requester_id=g.user.id,
             manager_id=manager_id,
             notes=notes,
+            due_date=due_date,
         )
         db.session.add(request_record)
         record_user_activity("stock_request_create", f"Ürün {product_id} için {quantity} adet talep")
@@ -566,6 +638,7 @@ def stock_requests():
         products=products,
         my_requests=my_requests,
         to_approve=to_approve,
+        min_due_date=min_due_date,
     )
 
 
@@ -622,7 +695,13 @@ def fulfill_request(request_id: int):
     db.session.add(exit_record)
     stock_request.status = "tamamlandı"
     stock_request.updated_at = datetime.datetime.utcnow()
-    record_movement(product.id, "talep-karşılama", -stock_request.quantity, f"Talep #{stock_request.id} karşılandı. {'; '.join(notes)}")
+    record_movement(
+        product.id,
+        "talep-karşılama",
+        -stock_request.quantity,
+        f"Talep #{stock_request.id} karşılandı. {'; '.join(notes)}",
+        cost=total_cost,
+    )
     record_user_activity("stock_request_fulfill", f"Talep {request_id} karşılandı")
     db.session.commit()
     flash("Talep karşılandı", "success")
@@ -671,6 +750,149 @@ def update_order_status(order_id: int):
     return redirect(url_for("purchase_orders"))
 
 
+@app.route("/projects", methods=["GET", "POST"])
+@manager_required
+def manage_projects():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        description = request.form.get("description", "").strip() or None
+        if not name:
+            flash("Proje adı zorunludur", "danger")
+            return redirect(url_for("manage_projects"))
+        if Project.query.filter_by(name=name).first():
+            flash("Bu isimde bir proje zaten mevcut", "warning")
+            return redirect(url_for("manage_projects"))
+        project = Project(name=name, description=description)
+        db.session.add(project)
+        record_user_activity("project_create", f"{name} projesi oluşturuldu")
+        db.session.commit()
+        flash("Proje eklendi", "success")
+        return redirect(url_for("manage_projects"))
+    projects = Project.query.order_by(Project.name.asc()).all()
+    return render_template("projects.html", projects=projects)
+
+
+@app.route("/projects/<int:project_id>", methods=["POST"])
+@manager_required
+def update_project(project_id: int):
+    project = Project.query.get_or_404(project_id)
+    name = request.form.get("name", "").strip()
+    description = request.form.get("description", "").strip() or None
+    if not name:
+        flash("Proje adı zorunludur", "danger")
+        return redirect(url_for("manage_projects"))
+    duplicate = Project.query.filter(Project.id != project.id, Project.name == name).first()
+    if duplicate:
+        flash("Bu isimde başka bir proje bulunuyor", "warning")
+        return redirect(url_for("manage_projects"))
+    project.name = name
+    project.description = description
+    record_user_activity("project_update", f"{project.name} projesi güncellendi")
+    db.session.commit()
+    flash("Proje güncellendi", "success")
+    return redirect(url_for("manage_projects"))
+
+
+@app.route("/products/<int:product_id>/update", methods=["POST"])
+@admin_required
+def update_product(product_id: int):
+    product = Product.query.get_or_404(product_id)
+    name = request.form.get("name", "").strip()
+    sku = request.form.get("sku", "").strip()
+    try:
+        reorder_level = int(request.form.get("reorder_level", product.reorder_level) or product.reorder_level)
+    except (TypeError, ValueError):
+        reorder_level = product.reorder_level
+    if not name or not sku:
+        flash("Ürün adı ve ürün kodu zorunludur", "danger")
+        return redirect(url_for("product_detail", product_id=product.id))
+    duplicate = Product.query.filter(
+        Product.id != product.id,
+        (Product.name == name) | (Product.sku == sku),
+    ).first()
+    if duplicate:
+        if duplicate.name == name:
+            flash("Bu isimde başka bir ürün mevcut", "warning")
+        else:
+            flash("Bu ürün kodu başka bir ürün tarafından kullanılıyor", "warning")
+        return redirect(url_for("product_detail", product_id=product.id))
+    product.name = name
+    product.sku = sku
+    product.reorder_level = reorder_level
+
+    image_file = request.files.get("image")
+    if image_file and image_file.filename:
+        if not allowed_file(image_file.filename):
+            flash("Desteklenmeyen dosya formatı", "danger")
+            return redirect(url_for("product_detail", product_id=product.id))
+        filename = secure_filename(image_file.filename)
+        ext = Path(filename).suffix
+        unique_name = f"product_{product.id}_{datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')}" + ext
+        save_path = Path(app.config["UPLOAD_FOLDER"]) / unique_name
+        image_file.save(save_path)
+        if product.image_filename and product.image_filename != unique_name:
+            old_path = Path(app.config["UPLOAD_FOLDER"]) / product.image_filename
+            if old_path.exists():
+                old_path.unlink()
+        product.image_filename = unique_name
+
+    record_user_activity("product_update", f"{product.name} ürünü güncellendi")
+    db.session.commit()
+    flash("Ürün güncellendi", "success")
+    return redirect(url_for("product_detail", product_id=product.id))
+
+
+@app.route("/reports/movements/export")
+@manager_required
+def export_movements():
+    movements = StockMovementLog.query.order_by(StockMovementLog.timestamp.asc()).all()
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Hareketler"
+    headers = [
+        "Tarih",
+        "Ürün",
+        "Hareket",
+        "Miktar",
+        "Maliyet",
+        "Proje",
+        "Detay",
+        "Kullanıcı",
+    ]
+    sheet.append(headers)
+    for movement in movements:
+        sheet.append(
+            [
+                movement.timestamp.strftime("%d.%m.%Y %H:%M"),
+                movement.product.name if movement.product else "-",
+                movement.movement_type,
+                movement.quantity,
+                round(movement.cost, 2) if movement.cost is not None else "-",
+                movement.project.name if movement.project else "-",
+                movement.details or "",
+                movement.user.username if movement.user else "-",
+            ]
+        )
+    for column_cells in sheet.columns:
+        max_length = 0
+        column_letter = column_cells[0].column_letter
+        for cell in column_cells:
+            if cell.value:
+                max_length = max(max_length, len(str(cell.value)))
+        sheet.column_dimensions[column_letter].width = max_length + 2
+
+    output = io.BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    filename = f"stok_hareketleri_{datetime.datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
 @app.route("/reports")
 @manager_required
 def reports():
@@ -703,7 +925,14 @@ def reports():
             }
         )
     movements = (
-        StockMovementLog.query.order_by(StockMovementLog.timestamp.desc()).limit(50).all()
+        StockMovementLog.query.options(
+            joinedload(StockMovementLog.product),
+            joinedload(StockMovementLog.project),
+            joinedload(StockMovementLog.user),
+        )
+        .order_by(StockMovementLog.timestamp.desc())
+        .limit(50)
+        .all()
     )
     return render_template(
         "reports.html",
