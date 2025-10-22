@@ -8,6 +8,7 @@ import click
 from flask import (Flask, abort, flash, g, redirect, render_template, request,
                    send_file, session, url_for)
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import joinedload
 from openpyxl import Workbook
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -25,6 +26,29 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 db = SQLAlchemy(app)
+
+
+def ensure_schema_upgrades() -> None:
+    """Ensure older SQLite databases have the latest columns."""
+
+    def add_column(table: str, column: str, ddl: str) -> None:
+        inspector = inspect(db.engine)
+        existing = {col["name"] for col in inspector.get_columns(table)}
+        if column in existing:
+            return
+        with db.engine.begin() as connection:
+            connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+
+    db.create_all()
+    add_column("products", "image_filename", "VARCHAR(255)")
+    add_column("stock_movement_logs", "cost", "FLOAT")
+    add_column("stock_movement_logs", "project_id", "INTEGER")
+    add_column("stock_requests", "due_date", "DATE")
+    add_column("purchase_orders", "expected_date", "DATE")
+
+
+with app.app_context():
+    ensure_schema_upgrades()
 
 
 def allowed_file(filename: str) -> bool:
