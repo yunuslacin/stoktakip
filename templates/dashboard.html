@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Kontrol Paneli</h1>
+
+{% if show_summary %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Toplam Ürün</h5>
+        <p class="display-6">{{ products|length }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Bekleyen Talepler</h5>
+        <p class="display-6">{{ pending_requests|length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if low_stock %}
+<div class="mt-4">
+  <h3>Düşük Stok Uyarıları</h3>
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered">
+      <thead>
+        <tr>
+          <th>Ürün</th>
+          <th>Stok</th>
+          <th>Minimum Seviye</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in low_stock %}
+        <tr class="table-warning">
+          <td><a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a></td>
+          <td>{{ '%.2f'|format(product.available_quantity()) }}</td>
+          <td>{{ product.reorder_level }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="mt-4">
+  <h3>Bekleyen Talepler</h3>
+  <ul class="list-group">
+    {% for req in pending_requests %}
+    <li class="list-group-item">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ req.order_number or '-' }}</strong> — {{ req.product.name }} ({{ req.quantity }} adet)
+          <div class="small text-muted">Talep eden: {{ req.requester.username }}</div>
+          <div class="small text-muted">Proje: {{ req.project.name if req.project else '-' }}{% if req.due_date %} | Termin: {{ req.due_date.strftime('%d.%m.%Y') }}{% endif %}</div>
+        </div>
+        <span class="badge bg-secondary">{{ req.status|status_label }}</span>
+      </div>
+    </li>
+    {% else %}
+    <li class="list-group-item">Bekleyen talep yok</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="mt-4">
+  <h3>Benim Taleplerim</h3>
+  <div class="table-responsive">
+    <table class="table table-striped table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Sipariş No</th>
+          <th>Tarih</th>
+          <th>Ürün</th>
+          <th>Miktar</th>
+          <th>Proje</th>
+          <th>Termin</th>
+          <th>Durum</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in my_requests %}
+        <tr>
+          <td>{{ req.order_number or '-' }}</td>
+          <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+          <td>{{ req.product.name }}</td>
+          <td>{{ req.quantity }}</td>
+          <td>{{ req.project.name if req.project else '-' }}</td>
+          <td>{{ req.due_date.strftime('%d.%m.%Y') if req.due_date else '-' }}</td>
+          <td><span class="badge bg-secondary">{{ req.status|status_label }}</span></td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center py-3">Talebiniz yok</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if approvals is not none and (approvals or g.user.is_manager) %}
+<div class="mt-4">
+  <h3>Onayımı Bekleyenler</h3>
+  <div class="table-responsive">
+    <table class="table table-striped table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Sipariş No</th>
+          <th>Tarih</th>
+          <th>Ürün</th>
+          <th>Miktar</th>
+          <th>Talep Eden</th>
+          <th>Proje</th>
+          <th>Termin</th>
+          <th>Durum</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in approvals %}
+        <tr>
+          <td>{{ req.order_number or '-' }}</td>
+          <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+          <td>{{ req.product.name }}</td>
+          <td>{{ req.quantity }}</td>
+          <td>{{ req.requester.username }}</td>
+          <td>{{ req.project.name if req.project else '-' }}</td>
+          <td>{{ req.due_date.strftime('%d.%m.%Y') if req.due_date else '-' }}</td>
+          <td>{{ req.status|status_label }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center py-3">Onay bekleyen talep yok</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

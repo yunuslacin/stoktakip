@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Talep Takip</h1>
+<p class="text-muted">Sistemdeki tüm stok taleplerini sipariş numaraları bazında izleyebilir ve tek sayfalık PDF dökümlerini alabilirsiniz.</p>
+
+{% if request_groups %}
+  <div class="row g-4">
+    {% for group in request_groups %}
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">{{ group.display_number }}</h5>
+            <div class="small text-muted">Oluşturma: {{ group.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge {{ group.status_badge }} text-uppercase">{{ group.status_label }}</span>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('export_request_pdf', group_key=group.key) }}">PDF İndir</a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <strong>Talep Eden:</strong>
+              <div>{{ group.requester.username if group.requester else '-' }}</div>
+            </div>
+            <div class="col-md-4">
+              <strong>Yönetici:</strong>
+              <div>{{ group.manager.username if group.manager else '-' }}</div>
+            </div>
+            <div class="col-md-4">
+              <strong>Not:</strong>
+              <div class="d-flex align-items-center gap-2">
+                <span>{{ group.notes or '-' }}</span>
+                {% if g.user.is_admin %}
+                <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#noteEditModal" data-group="{{ group.key }}" data-note="{{ group.notes|default('', true)|e }}">Düzenle</button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 5%">#</th>
+                  <th style="width: 35%">Ürün</th>
+                  <th style="width: 15%">Miktar</th>
+                  <th style="width: 20%">Proje</th>
+                  <th style="width: 15%">Termin</th>
+                  <th style="width: 10%">Durum</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for line in group.lines %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ line.product.name if line.product else '-' }}</td>
+                  <td>{{ '%.2f'|format(line.quantity) }}</td>
+                  <td>{{ line.project.name if line.project else '-' }}</td>
+                  <td>{{ line.due_date.strftime('%d.%m.%Y') if line.due_date else '-' }}</td>
+                  <td>
+                    <span class="badge bg-secondary">{{ line.status|status_label }}</span>
+                    {% if line.approver %}
+                    <div class="small text-muted">Onaylayan: {{ line.approver.username }}</div>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">Henüz kayıtlı talep bulunmuyor.</div>
+{% endif %}
+
+{% if g.user.is_admin %}
+<div class="modal fade" id="noteEditModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="post" class="modal-content" id="noteEditForm">
+      <div class="modal-header">
+        <h5 class="modal-title">Talep Notunu Güncelle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label" for="noteEditInput">Not</label>
+          <input type="text" class="form-control" id="noteEditInput" name="note" placeholder="Talep notu">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  (function() {
+    const modal = document.getElementById('noteEditModal');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      if (!button) return;
+      const targetUrl = button.getAttribute('data-group');
+      const noteValue = button.getAttribute('data-note') || '';
+      const form = document.getElementById('noteEditForm');
+      const input = document.getElementById('noteEditInput');
+      if (form && targetUrl) {
+        form.action = '{{ url_for('update_request_note', group_key='__PLACEHOLDER__') }}'.replace('__PLACEHOLDER__', targetUrl);
+      }
+      if (input) {
+        input.value = noteValue;
+      }
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}
