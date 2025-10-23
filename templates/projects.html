@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Projeler</h1>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Yeni Proje</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Proje Adı</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <input type="text" name="description" class="form-control" placeholder="Opsiyonel">
+          </div>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">Kayıtlı Projeler</div>
+      <div class="table-responsive mb-0">
+        <table class="table table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Proje</th>
+              <th>Açıklama</th>
+              <th class="text-end">İşlem</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for project in projects %}
+            <tr>
+              <td>{{ project.name }}</td>
+              <td>{{ project.description or '-' }}</td>
+              <td class="text-end">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editProject{{ project.id }}">Düzenle</button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center py-4">Proje kaydı bulunmuyor.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for project in projects %}
+<div class="modal fade" id="editProject{{ project.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('update_project', project_id=project.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ project.name }} - Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Proje Adı</label>
+            <input type="text" name="name" class="form-control" value="{{ project.name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <input type="text" name="description" class="form-control" value="{{ project.description or '' }}" placeholder="Opsiyonel">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Vazgeç</button>
+          <button type="submit" class="btn btn-primary">Güncelle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
