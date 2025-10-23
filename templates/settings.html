@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Ayarlar</h1>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">İş Süreçleri</div>
+      <div class="card-body">
+        <p class="text-muted">Stok operasyonları ve proje yönetimi için gerekli araçlara buradan ulaşabilirsiniz.</p>
+        <div class="list-group list-group-flush">
+          <a class="list-group-item list-group-item-action" href="{{ url_for('stock_adjust') }}">Stok Düzeltmeleri</a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('manage_projects') }}">Projeler</a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('manage_warehouses') }}">Depolar</a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('movement_history') }}">Hareket Geçmişi</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if g.user.is_admin %}
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Yönetim</div>
+      <div class="card-body">
+        <p class="text-muted">Kullanıcı ve referans verisi yönetimi için gerekli bağlantılar.</p>
+        <div class="list-group list-group-flush">
+          <a class="list-group-item list-group-item-action" href="{{ url_for('manage_users') }}">Kullanıcı Yönetimi</a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('manage_categories') }}">Kategoriler</a>
+          <a class="list-group-item list-group-item-action" href="{{ url_for('activity_logs') }}">Aktivite Logları</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
