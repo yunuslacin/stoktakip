@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Kullanıcı Yönetimi</h1>
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Yeni Kullanıcı</h5>
+    <form method="post" class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Kullanıcı Adı</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Şifre</label>
+        <input type="text" name="password" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Rol</label>
+        <select name="role" class="form-select">
+          <option value="user">Kullanıcı</option>
+          <option value="manager">Yönetici</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Yönetici</label>
+        <select name="manager_id" class="form-select">
+          <option value="">Yok</option>
+          {% for user in users %}
+          <option value="{{ user.id }}">{{ user.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Kullanıcı Adı</th>
+        <th>Rol</th>
+        <th>Yönetici</th>
+        <th>Oluşturma Tarihi</th>
+        <th>Şifre Sıfırla</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.username }}</td>
+        <td>{{ user.role }}</td>
+        <td>{{ user.manager.username if user.manager else '-' }}</td>
+        <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>
+          <form method="post" action="{{ url_for('reset_password', user_id=user.id) }}" class="d-flex gap-2">
+            <input type="text" name="password" class="form-control form-control-sm" placeholder="Yeni Şifre" required>
+            <button class="btn btn-outline-primary btn-sm" type="submit">Güncelle</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center">Kullanıcı bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
