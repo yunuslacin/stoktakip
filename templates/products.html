@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+{% set show_inventory = g.user.is_manager %}
+{% set show_actions = g.user.is_manager %}
+<div class="d-flex justify-content-between align-items-center">
+  <h1>Ürünler</h1>
+  {% if g.user.is_admin %}
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProductModal">Yeni Ürün</button>
+  {% endif %}
+</div>
+<div class="table-responsive mt-3">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Ad</th>
+        <th>Ürün Kodu</th>
+        <th>Kategori</th>
+        {% if show_inventory %}
+        <th>Stok</th>
+        <th>Minimum Seviye</th>
+        {% endif %}
+        {% if show_actions %}
+        <th></th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.sku }}</td>
+        <td>{{ product.category.name if product.category else '-' }}</td>
+        {% if show_inventory %}
+        <td>{{ '%.2f'|format(product.available_quantity()) }}</td>
+        <td>{{ product.reorder_level }}</td>
+        {% endif %}
+        {% if show_actions %}
+        <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('product_detail', product_id=product.id) }}">Detay</a></td>
+        {% endif %}
+      </tr>
+        {% else %}
+        <tr><td colspan="{{ 3 + (2 if show_inventory else 0) + (1 if show_actions else 0) }}" class="text-center">Ürün bulunamadı</td></tr>
+        {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal fade" id="newProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('create_product') }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Yeni Ürün</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Ürün Adı</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Ürün Kodu</label>
+            <input type="text" name="sku" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Kategori</label>
+            <select name="category_id" class="form-select">
+              <option value="">Seçiniz</option>
+              {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Minimum Stok Seviyesi</label>
+            <input type="number" name="reorder_level" class="form-control" min="0" value="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
