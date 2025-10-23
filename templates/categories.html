@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3">Kategoriler</h1>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Yeni Kategori Ekle</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label for="category-name" class="form-label">Kategori adı</label>
+            <input type="text" class="form-control" id="category-name" name="name" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Ekle</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">Kayıtlı Kategoriler</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped mb-0 align-middle">
+            <thead>
+              <tr>
+                <th style="width: 25%">#</th>
+                <th>Kategori adı</th>
+                <th style="width: 20%" class="text-end">İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in categories %}
+              <tr>
+                <td>{{ category.id }}</td>
+                <td>
+                  <form class="d-flex gap-2" method="post" action="{{ url_for('update_category', category_id=category.id) }}">
+                    <input type="text" name="name" class="form-control" value="{{ category.name }}" required>
+                    <button type="submit" class="btn btn-outline-primary">Kaydet</button>
+                  </form>
+                </td>
+                <td class="text-end"></td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="3" class="text-center py-4">Kayıtlı kategori bulunmuyor.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
