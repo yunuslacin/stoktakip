@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Stok Hareketleri</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <p class="text-muted mb-0">Son 100 stok hareketini görüntülersiniz. Daha detaylı analiz için raporlar sayfasını kullanabilirsiniz.</p>
+  <a href="{{ url_for('export_movements') }}" class="btn btn-outline-success btn-sm">Excel'e Aktar</a>
+</div>
+<div class="table-responsive">
+  <table class="table table-striped table-sm align-middle">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Ürün</th>
+        <th>Hareket</th>
+        <th>Miktar</th>
+        <th>Maliyet</th>
+        <th>Proje</th>
+        <th>Detay</th>
+        <th>Kullanıcı</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for movement in movements %}
+      <tr>
+        <td>{{ movement.timestamp|local_datetime }}</td>
+        <td>{{ movement.product.name if movement.product else '-' }}</td>
+        <td>{{ movement.movement_type }}</td>
+        <td>{{ movement.quantity|decimal }}</td>
+        <td>
+          {% if movement.cost is not none %}
+          {{ movement.cost|decimal }}
+          {% else %}
+          -
+          {% endif %}
+        </td>
+        <td>{{ movement.project.name if movement.project else '-' }}</td>
+        <td>{{ movement.details }}</td>
+        <td>{{ movement.user.username if movement.user else '-' }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" class="text-center py-4">Hareket kaydı bulunamadı.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
