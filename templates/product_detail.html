@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-3 align-items-start">
+  <div class="col-lg-8">
+    <h1>{{ product.name }}</h1>
+    <p class="text-muted mb-1">Ürün Kodu: {{ product.sku }}</p>
+    <p class="text-muted mb-2">Kategori: {{ product.category.name if product.category else '-' }}</p>
+    <p class="text-muted mb-2">Birim: {{ product.unit.name if product.unit else '-' }}</p>
+    {% if product.notes %}
+    <div class="alert alert-info mb-0"><strong>Not:</strong> {{ product.notes }}</div>
+    {% endif %}
+  </div>
+  {% if primary_image %}
+  <div class="col-lg-4 text-lg-end">
+    <img src="{{ url_for('static', filename='uploads/' ~ primary_image) }}" alt="{{ product.name }}" class="img-thumbnail" style="max-height: 200px;">
+  </div>
+  {% endif %}
+</div>
+
+{% if gallery_images %}
+<div class="mt-3">
+  <h5>Fotoğraf Galerisi</h5>
+  <div class="d-flex flex-wrap gap-2">
+    {% for image in gallery_images %}
+    <a href="{{ url_for('static', filename='uploads/' ~ image) }}" target="_blank" class="d-inline-block">
+      <img src="{{ url_for('static', filename='uploads/' ~ image) }}" alt="{{ product.name }}" class="img-thumbnail" style="height: 96px; width: auto;">
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if g.user.is_admin %}
+<div class="card my-3">
+  <div class="card-body">
+    <h5 class="card-title">Ürünü Güncelle</h5>
+    <form method="post" action="{{ url_for('update_product', product_id=product.id) }}" enctype="multipart/form-data" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Ürün Adı</label>
+        <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Ürün Kodu</label>
+        <input type="text" name="sku" class="form-control" value="{{ product.sku }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Kategori</label>
+        <select name="category_id" class="form-select">
+          <option value="">Seçiniz</option>
+          {% for category in categories %}
+          <option value="{{ category.id }}" {% if product.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Birim</label>
+        <select name="unit_id" class="form-select" required>
+          <option value="">Seçiniz</option>
+          {% for unit in units %}
+          <option value="{{ unit.id }}" {% if product.unit_id == unit.id %}selected{% endif %}>{{ unit.name }}{% if unit.abbreviation %} ({{ unit.abbreviation }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Minimum Stok Seviyesi</label>
+        <input type="number" name="reorder_level" class="form-control" min="0" value="{{ product.reorder_level }}">
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Ürün Fotoğrafları</label>
+        <input type="file" name="images" class="form-control" accept="image/*" multiple>
+        <div class="form-text">Birden fazla fotoğraf yükleyebilirsiniz.</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Not</label>
+        <textarea name="notes" class="form-control" rows="3" placeholder="Ürün notu">{{ product.notes }}</textarea>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Güncelle</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5>Mevcut Stok</h5>
+        <p class="display-6">{{ available|decimal }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5>Ortalama Maliyet</h5>
+        <p class="display-6">{{ product.average_unit_cost()|decimal }} ₺</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5>Son Maliyet</h5>
+        <p class="display-6">{{ product.last_unit_cost()|decimal }} ₺</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if g.user.is_admin %}
+<h3>Stok Girişleri</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th class="text-end">Adet</th>
+        <th class="text-end">Kalan</th>
+        <th class="text-end">Birim Maliyet</th>
+        <th>Tedarikçi</th>
+        <th>Fatura</th>
+        <th>Depo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+      <tr>
+        <td>{{ entry.timestamp|local_datetime }}</td>
+        <td class="text-end">{{ entry.quantity|decimal }}</td>
+        <td class="text-end">{{ entry.remaining_quantity|decimal }}</td>
+        <td class="text-end">{{ entry.unit_cost|decimal }}</td>
+        <td>{{ entry.supplier or '-' }}</td>
+        <td>{{ entry.invoice_number or '-' }}</td>
+        <td>{{ entry.warehouse.name if entry.warehouse else '-' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Stok Çıkışları</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th class="text-end">Adet</th>
+        <th>Proje</th>
+        <th class="text-end">Toplam Maliyet</th>
+        <th class="text-end">Birim Maliyet</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for exit in exits %}
+      <tr>
+        <td>{{ exit.timestamp|local_datetime }}</td>
+        <td class="text-end">{{ exit.quantity|decimal }}</td>
+        <td>{{ exit.project.name if exit.project else '-' }}</td>
+        <td class="text-end">{{ exit.total_cost|decimal }}</td>
+        <td class="text-end">{{ (exit.total_cost / exit.quantity)|decimal if exit.quantity else '-' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Manuel Düzeltmeler</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th class="text-end">Değişim</th>
+        <th>Neden</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for adj in adjustments %}
+      <tr>
+        <td>{{ adj.timestamp|local_datetime }}</td>
+        <td class="text-end">{{ adj.quantity_change|decimal }}</td>
+        <td>{{ adj.reason }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Talep Geçmişi</h3>
+<div class="table-responsive">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Sipariş No</th>
+        <th>Kullanıcı</th>
+        <th class="text-end">Adet</th>
+        <th>Proje</th>
+        <th>Termin</th>
+        <th>Durum</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requests %}
+      <tr>
+        <td>{{ req.created_at|local_datetime }}</td>
+        <td>{{ req.order_number or '-' }}</td>
+        <td>{{ req.requester.username }}</td>
+        <td class="text-end">{{ req.quantity|decimal }}</td>
+        <td>{{ req.project.name if req.project else '-' }}</td>
+        <td>{{ req.due_date.strftime('%d.%m.%Y') if req.due_date else '-' }}</td>
+        <td>{{ req.status|status_label }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center">Kayıt bulunamadı</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}
