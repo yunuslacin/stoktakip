@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Birimler</h1>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Yeni Birim</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label for="unit-name" class="form-label">Birim adı</label>
+            <input type="text" class="form-control" id="unit-name" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="unit-abbreviation" class="form-label">Kısaltma (opsiyonel)</label>
+            <input type="text" class="form-control" id="unit-abbreviation" name="abbreviation" maxlength="20">
+          </div>
+          <button type="submit" class="btn btn-primary">Ekle</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">Kayıtlı Birimler</div>
+      <div class="table-responsive mb-0">
+        <table class="table table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Birim</th>
+              <th>Kısaltma</th>
+              <th class="text-end">İşlem</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for unit in units %}
+            <tr>
+              <td>{{ unit.name }}</td>
+              <td>{{ unit.abbreviation or '-' }}</td>
+              <td class="text-end">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUnit{{ unit.id }}">Düzenle</button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center py-4">Birim bulunmuyor.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for unit in units %}
+<div class="modal fade" id="editUnit{{ unit.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('update_unit', unit_id=unit.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ unit.name }} - Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Birim Adı</label>
+            <input type="text" name="name" class="form-control" value="{{ unit.name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Kısaltma</label>
+            <input type="text" name="abbreviation" class="form-control" value="{{ unit.abbreviation or '' }}" maxlength="20">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Vazgeç</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
