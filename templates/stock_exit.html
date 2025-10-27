@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-3">Stok Çıkışı</h1>
+
+<form method="post" id="exit-form">
+  <div class="table-responsive mb-3">
+    <table class="table table-sm align-middle" id="exit-table">
+      <thead>
+        <tr>
+          <th style="width: 40%">Ürün</th>
+          <th style="width: 25%">Miktar</th>
+          <th style="width: 25%">Proje</th>
+          <th style="width: 10%" class="text-end">İşlem</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="d-flex justify-content-between">
+    <button type="button" class="btn btn-outline-secondary" id="add-exit-row">Satır Ekle</button>
+    <button type="submit" class="btn btn-primary">Tamam</button>
+  </div>
+</form>
+
+<script>
+  (function() {
+    const tableBody = document.querySelector('#exit-table tbody');
+    const addButton = document.getElementById('add-exit-row');
+    const productOptions = `
+      <option value="">Seçiniz</option>
+      {% for product in products %}
+      <option value="{{ product.id }}">{{ product.name|e }}</option>
+      {% endfor %}`;
+    const projectOptions = `
+      <option value="">Seçiniz</option>
+      {% for project in projects %}
+      <option value="{{ project.id }}">{{ project.name|e }}</option>
+      {% endfor %}`;
+
+    function attachListeners(row) {
+      row.querySelector('.remove-row').addEventListener('click', () => {
+        if (tableBody.children.length > 1) {
+          row.remove();
+        } else {
+          row.querySelectorAll('select, input').forEach(el => el.value = '');
+        }
+      });
+    }
+
+    function createRow() {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <select name="product_id[]" class="form-select" required>
+            ${productOptions}
+          </select>
+        </td>
+        <td>
+          <input type="number" name="quantity[]" class="form-control" min="0.01" step="0.01" required>
+        </td>
+        <td>
+          <select name="project_id[]" class="form-select">
+            ${projectOptions}
+          </select>
+        </td>
+        <td class="text-end">
+          <button type="button" class="btn btn-outline-danger btn-sm remove-row">Sil</button>
+        </td>`;
+      attachListeners(tr);
+      return tr;
+    }
+
+    function addRow() {
+      tableBody.appendChild(createRow());
+    }
+
+    addButton.addEventListener('click', addRow);
+    addRow();
+  })();
+</script>
+{% endblock %}
