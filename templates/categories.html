@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Kategoriler</h1>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Yeni Kategori</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label for="category-name" class="form-label">Kategori adı</label>
+            <input type="text" class="form-control" id="category-name" name="name" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Ekle</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">Kayıtlı Kategoriler</div>
+      <div class="table-responsive mb-0">
+        <table class="table table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Kategori</th>
+              <th class="text-end">İşlem</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category in categories %}
+            <tr>
+              <td>{{ category.name }}</td>
+              <td class="text-end">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editCategory{{ category.id }}">Düzenle</button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="2" class="text-center py-4">Kategori bulunmuyor.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for category in categories %}
+<div class="modal fade" id="editCategory{{ category.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('update_category', category_id=category.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ category.name }} - Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Kategori Adı</label>
+            <input type="text" name="name" class="form-control" value="{{ category.name }}" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Vazgeç</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
