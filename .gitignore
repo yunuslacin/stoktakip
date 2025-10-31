@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+instance/
+inventory.db
+*.sqlite3
+.env
