@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">E-posta Logları</h1>
+<p class="text-muted">Gönderilen bildirimlerin geçmişini görüntüleyin.</p>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th scope="col">Tarih</th>
+        <th scope="col">Konu</th>
+        <th scope="col">Alıcılar</th>
+        <th scope="col">Durum</th>
+        <th scope="col">Hata</th>
+        <th scope="col">İçerik</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td class="text-nowrap">{{ log.created_at|local_datetime }}</td>
+        <td>{{ log.subject }}</td>
+        <td>{{ log.recipients }}</td>
+        <td>
+          {% if log.success %}
+          <span class="badge bg-success">Gönderildi</span>
+          {% else %}
+          <span class="badge bg-danger">Başarısız</span>
+          {% endif %}
+        </td>
+        <td>{{ log.error_message or '-' }}</td>
+        <td class="text-break"><pre class="mb-0 small">{{ log.body or '-' }}</pre></td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center text-muted">Henüz kayıt bulunmuyor.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if pagination.pages > 1 %}
+<nav aria-label="E-posta logları sayfaları">
+  <ul class="pagination">
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      {% if pagination.has_prev %}
+      <a class="page-link" href="{{ url_for('email_logs', page=pagination.prev_num) }}" tabindex="-1">Önceki</a>
+      {% else %}
+      <span class="page-link" tabindex="-1">Önceki</span>
+      {% endif %}
+    </li>
+    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if page_num %}
+        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('email_logs', page=page_num) }}">{{ page_num }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      {% if pagination.has_next %}
+      <a class="page-link" href="{{ url_for('email_logs', page=pagination.next_num) }}">Sonraki</a>
+      {% else %}
+      <span class="page-link">Sonraki</span>
+      {% endif %}
+    </li>
+  </ul>
+</nav>
+{% endif %}
+<a href="{{ url_for('settings') }}" class="btn btn-outline-secondary">Ayarlar'a dön</a>
+{% endblock %}
