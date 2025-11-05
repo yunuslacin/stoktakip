@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">E-posta Ayarları</h1>
+<p class="text-muted">Bildirimlerin iletilebilmesi için SMTP bilgilerini yapılandırın.</p>
+<form method="post" class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label" for="smtp_server">SMTP Sunucusu</label>
+    <input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{{ config.smtp_server or '' }}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label" for="smtp_port">SMTP Portu</label>
+    <input type="number" class="form-control" id="smtp_port" name="smtp_port" min="1" value="{{ config.smtp_port or '' }}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label" for="smtp_timeout">Zaman Aşımı (sn)</label>
+    <input type="number" class="form-control" id="smtp_timeout" name="smtp_timeout" min="1" value="{{ config.smtp_timeout or '' }}">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="smtp_username">Kullanıcı Adı</label>
+    <input type="text" class="form-control" id="smtp_username" name="smtp_username" value="{{ config.smtp_username or '' }}">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="smtp_password">Şifre</label>
+    <input type="password" class="form-control" id="smtp_password" name="smtp_password" value="{{ config.smtp_password or '' }}">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="mail_sender">Gönderici Adresi</label>
+    <input type="email" class="form-control" id="mail_sender" name="mail_sender" value="{{ config.mail_sender or '' }}">
+    <div class="form-text">Boş bırakılırsa kullanıcı adı ya da varsayılan adres kullanılır.</div>
+  </div>
+  <div class="col-md-6 d-flex align-items-end">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="on" id="smtp_use_tls" name="smtp_use_tls" {% if config.smtp_use_tls %}checked{% endif %}>
+      <label class="form-check-label" for="smtp_use_tls">TLS kullan</label>
+    </div>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+    <a href="{{ url_for('settings') }}" class="btn btn-outline-secondary ms-2">Ayarlar'a dön</a>
+  </div>
+</form>
+{% if config.updated_at %}
+<div class="mt-4 text-muted small">Son güncelleme: {{ config.updated_at|local_datetime }}</div>
+{% endif %}
+{% endblock %}
