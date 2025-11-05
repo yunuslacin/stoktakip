@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Kontrol Paneli</h1>
+
+{% if show_summary %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Toplam Ürün</h5>
+        <p class="display-6">{{ products|length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if low_stock %}
+<div class="mt-4">
+  <h3>Düşük Stok Uyarıları</h3>
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered">
+      <thead>
+        <tr>
+          <th>Ürün</th>
+          <th class="text-end">Stok</th>
+          <th class="text-end">Minimum Seviye</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in low_stock %}
+        <tr class="table-warning">
+          <td><a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a></td>
+          <td class="text-end">{{ product.available_quantity()|decimal }}</td>
+          <td class="text-end">{{ product.reorder_level|decimal(0) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

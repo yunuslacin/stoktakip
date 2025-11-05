@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">E-posta İstemcisi</h1>
+<p class="text-muted">Sistem kullanıcılarına veya harici adreslere manuel bilgilendirme e-postaları gönderebilirsiniz.</p>
+<form method="post" novalidate>
+  <input type="hidden" name="form_type" value="manual">
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="mb-3">
+        <label for="recipients" class="form-label">Sistem Kullanıcıları</label>
+        <select id="recipients" name="recipients" class="form-select" multiple size="10">
+          {% for user in users %}
+          <option value="{{ user.id }}" {% if user.id in form_data.selected_ids %}selected{% endif %}>
+            {{ user.username }}{% if user.email %} ({{ user.email }}){% else %} — e-posta tanımlı değil{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Birden fazla alıcı seçmek için Ctrl veya Shift tuşlarını kullanabilirsiniz.</div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="mb-3">
+        <label for="additional_recipients" class="form-label">Harici Alıcılar</label>
+        <textarea id="additional_recipients" name="additional_recipients" class="form-control" rows="10" placeholder="ornek@firma.com; diger@firma.com">{{ form_data.additional_recipients }}</textarea>
+        <div class="form-text">Adresleri virgül, noktalı virgül veya satır başı ile ayırabilirsiniz.</div>
+      </div>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="subject" class="form-label">Konu</label>
+    <input type="text" id="subject" name="subject" class="form-control" value="{{ form_data.subject }}" required>
+  </div>
+  <div class="mb-4">
+    <label for="body" class="form-label">Mesaj</label>
+    <textarea id="body" name="body" class="form-control" rows="8" required>{{ form_data.body }}</textarea>
+  </div>
+  <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3">
+    <small class="text-muted">Gönderilen tüm e-postalar Ayarlar &gt; E-posta Logları ekranından takip edilebilir.</small>
+    <button type="submit" class="btn btn-primary">E-postayı Gönder</button>
+  </div>
+</form>
+
+<hr class="my-5">
+
+<div class="card shadow-sm">
+  <div class="card-header">
+    Otomatik Bildirim Şablonu
+  </div>
+  <div class="card-body">
+    <form method="post" novalidate class="d-flex flex-column gap-3">
+      <input type="hidden" name="form_type" value="auto">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="auto_notify_enabled" name="auto_notify_enabled" {% if auto_form_data.enabled %}checked{% endif %}>
+        <label class="form-check-label" for="auto_notify_enabled">Yeni stok talebi oluşturulduğunda otomatik e-posta gönder</label>
+      </div>
+      <div class="mb-3">
+        <label for="auto_subject" class="form-label">Otomatik E-posta Konusu</label>
+        <input type="text" id="auto_subject" name="auto_subject" class="form-control" value="{{ auto_form_data.subject }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="auto_body" class="form-label">Otomatik E-posta İçeriği</label>
+        <textarea id="auto_body" name="auto_body" class="form-control" rows="8" required>{{ auto_form_data.body }}</textarea>
+        <div class="form-text">
+          Kullanabileceğiniz yer tutucular:
+          {% for placeholder, description in auto_placeholders %}
+          <span class="badge text-bg-light fw-normal">{{ placeholder }}</span>
+          <small class="text-muted">{{ description }}</small>{% if not loop.last %}<span class="mx-1">•</span>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="text-end">
+        <button type="submit" class="btn btn-success">Şablonu Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
