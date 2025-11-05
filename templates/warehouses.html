@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">Depo Yönetimi</h1>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Yeni Depo Ekle</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Depo Adı</label>
+            <input type="text" class="form-control" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <input type="text" class="form-control" name="description" placeholder="Opsiyonel">
+          </div>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">Kayıtlı Depolar</div>
+      <div class="table-responsive mb-0">
+        <table class="table table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Depo</th>
+              <th>Açıklama</th>
+              <th class="text-end">İşlem</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for warehouse in warehouses %}
+            <tr>
+              <td>{{ warehouse.name }}</td>
+              <td>{{ warehouse.description or '-' }}</td>
+              <td class="text-end">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editWarehouse{{ warehouse.id }}">Düzenle</button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center py-4">Kayıtlı depo bulunmuyor.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for warehouse in warehouses %}
+<div class="modal fade" id="editWarehouse{{ warehouse.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('update_warehouse', warehouse_id=warehouse.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ warehouse.name }} - Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Depo Adı</label>
+            <input type="text" class="form-control" name="name" value="{{ warehouse.name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <input type="text" class="form-control" name="description" value="{{ warehouse.description or '' }}" placeholder="Opsiyonel">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Vazgeç</button>
+          <button type="submit" class="btn btn-primary">Güncelle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
