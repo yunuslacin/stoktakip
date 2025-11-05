@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">E-posta İstemcisi</h1>
+<p class="text-muted">Sistem kullanıcılarına veya harici adreslere manuel bilgilendirme e-postaları gönderebilirsiniz.</p>
+<form method="post" novalidate>
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="mb-3">
+        <label for="recipients" class="form-label">Sistem Kullanıcıları</label>
+        <select id="recipients" name="recipients" class="form-select" multiple size="10">
+          {% for user in users %}
+          <option value="{{ user.id }}" {% if user.id in form_data.selected_ids %}selected{% endif %}>
+            {{ user.username }}{% if user.email %} ({{ user.email }}){% else %} — e-posta tanımlı değil{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Birden fazla alıcı seçmek için Ctrl veya Shift tuşlarını kullanabilirsiniz.</div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="mb-3">
+        <label for="additional_recipients" class="form-label">Harici Alıcılar</label>
+        <textarea id="additional_recipients" name="additional_recipients" class="form-control" rows="10" placeholder="ornek@firma.com; diger@firma.com">{{ form_data.additional_recipients }}</textarea>
+        <div class="form-text">Adresleri virgül, noktalı virgül veya satır başı ile ayırabilirsiniz.</div>
+      </div>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="subject" class="form-label">Konu</label>
+    <input type="text" id="subject" name="subject" class="form-control" value="{{ form_data.subject }}" required>
+  </div>
+  <div class="mb-4">
+    <label for="body" class="form-label">Mesaj</label>
+    <textarea id="body" name="body" class="form-control" rows="8" required>{{ form_data.body }}</textarea>
+  </div>
+  <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3">
+    <small class="text-muted">Gönderilen tüm e-postalar Ayarlar &gt; E-posta Logları ekranından takip edilebilir.</small>
+    <button type="submit" class="btn btn-primary">E-postayı Gönder</button>
+  </div>
+</form>
+{% endblock %}
